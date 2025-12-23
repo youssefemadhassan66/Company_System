@@ -23,6 +23,7 @@ const AttendanceSchema = new schema ({
         required:true,
         default:'absent'
     }
+    
 
 
    

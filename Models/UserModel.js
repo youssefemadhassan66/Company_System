@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
 import { type } from 'os'
 
-const schema = mongoose
+const schema = mongoose.Schema
 const userSchema = new schema(
   {
     UserName : {
@@ -166,7 +166,8 @@ const userSchema = new schema(
       select: false,
     },
     Role: { 
-      ref: 'Role', type: schema.Types.ObjectId , 
+      ref: 'Role',
+       type: schema.Types.ObjectId , 
       required:true
      },
     passwordChangeAt: Date,
