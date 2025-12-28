@@ -73,8 +73,6 @@ const userSchema = new schema(
           type: String,
           required: [true, 'Password is required'],
           minlength: [8, 'Password must be at least 8 characters'],
-          trim: true,
-          lowercase: true,
           select: false,
           validate: {
             validator: function (value) {
@@ -185,7 +183,7 @@ userSchema.virtual('FullName').get(function () {
 
 userSchema.virtual('Age').get(function () {
   if (!this.DateOfBirth) return null
-  let Age = new Date().getFullYear() - this.dateOfBirth.getFullYear()
+  let Age = new Date().getFullYear() - this.DateOfBirth.getFullYear()
   return Age
 })
 userSchema.pre(/^find/, function () {
@@ -196,7 +194,7 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('Password')) {
     return next()
   }
-  this.Password = await bcrypt.hash(this.Password, process.env.SALT_ROUNDS)
+  this.Password = await bcrypt.hash(this.Password, parseInt(process.env.SALT_ROUNDS,10))
   next()
 })
 

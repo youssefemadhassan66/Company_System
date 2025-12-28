@@ -18,7 +18,7 @@ const tasksSchema = new schema({
     type:{
         type: String,
         required: true,
-        default: 'feature',
+        default: 'Update',
     },
     priority:{
         type: String,
@@ -53,6 +53,9 @@ const tasksSchema = new schema({
             message: 'Due date must be in the future',
         },
     },
+    review:{
+        type:string,
+    },
     isCompleted: {
         type: Boolean,
         default: false,
@@ -64,5 +67,7 @@ const tasksSchema = new schema({
 }, { timestamps: true })
 
 const Task = mongoose.model('Task', tasksSchema)
+
+
 
 export default Task

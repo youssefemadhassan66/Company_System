@@ -68,8 +68,8 @@ roleSchema.pre('save',function(next){
       'admin' :2,
       'manager':3, 
       'team lead':4,
-      'moderator':'5',
-      'employee':'6'
+      'moderator':5,
+      'employee':6
     }
     let assign_level = levelOfPower[this.Name]
 
@@ -80,9 +80,6 @@ roleSchema.pre('save',function(next){
     this.Level = assign_level
     
     next();
-
-
-
   }
 })
 
