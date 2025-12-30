@@ -136,7 +136,6 @@ const userSchema = new schema(
     },
     rating: {
       type: Number,
-      required: [true, 'User rating is required'],
       min: 1,
       max: 5,
     },

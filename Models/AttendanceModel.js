@@ -83,10 +83,8 @@ const attendanceSchema = new schema ({
     toObject:{virtuals:true}
 })
 
-// Compound index: One record per employee per day
 attendanceSchema.index({ employee: 1, date: 1 }, { unique: true });
 
-// For common queries
 attendanceSchema.index({ status: 1, date: -1 });
 
 attendanceSchema.virtual('IsComplete').get(function(){
