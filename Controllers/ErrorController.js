@@ -14,17 +14,17 @@ const HandelDuplicatedFieldsError = (err) => {
 
 const HandleValidationError = (err) =>{
 
-  const errors = object.values(err.errors).map(el=>el.message)
+  const errors = Object.values(err.errors).map(el=>el.message)
 
   const message = `Validation Error , ${errors.join('. ')} `
-  return ErrorHandler(message,400)
+  return new ErrorHandler(message,400)
 }
 
 const HandleJwtError = (err) => {
-  ErrorHandler('Invalid Token , Please login Again !', 401)
+ return new ErrorHandler('Invalid Token , Please login Again !', 401)
 }
 const HandleExpiredJwtToken = (err) => {
-  ErrorHandler('Token Expired , Please Login Again !', 401)
+  return new ErrorHandler('Token Expired , Please Login Again !', 401)
 }
 
 
@@ -38,7 +38,6 @@ const ErrorDevelopment = function(res,err){
   
 
 }
-
 
 const ErrorProduction = function(res,err){
    if(err.isOperational){
@@ -60,18 +59,21 @@ const ErrorProduction = function(res,err){
 const GlobalErrorHandler = (err,req,res,next)=>{
 
   err.status = err.status || 'fail'
-  err.status = err.statusCode || 500
+  err.statusCode = err.statusCode || 500
   
   if(process.env.NODE_ENV === 'development'){
     ErrorDevelopment(res,err)
   }
   else if(process.env.NODE_ENV === 'production'){
 
-    const error = {...err}
+    let  error =  Object.create(err);
 
     if(error.name === 'CastError') error =  HandleCastDBError(error)
     if (error.code=== 11000) error = HandelDuplicatedFieldsError(error);
     if(error.name === 'ValidationError') error = HandleValidationError(error)
+    if(error.name === "JsonWebTokenError") error = HandleJwtError(error)
+    if(error.name === "TokenExpiredError") error = HandleExpiredJwtToken(error)
+
     ErrorProduction(res,error)
     
   }

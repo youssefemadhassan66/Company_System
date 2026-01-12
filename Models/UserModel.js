@@ -2,16 +2,15 @@
 import mongoose from 'mongoose'
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
-import { date, func, required } from 'joi'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-import { type } from 'os'
+import { date } from 'joi'
 
 const schema = mongoose.Schema
 const userSchema = new schema(
   {
     UserName: {
-      type: string,
+      type: String,
       required: true,
       maxlength: [30, 'User name must be less than 30 characters'],
       minlength: [3, 'User name must be more than 3 characters'],
@@ -23,12 +22,12 @@ const userSchema = new schema(
       minlength: [3, 'First Name must be at least 3 characters'],
       trim: true,
       lowercase: true,
-    },
-    Validate: {
-      validator: function (value) {
-        return validator.isAlpha(value)
+      validate: {
+        validator: function (value) {
+          return validator.isAlpha(value)
+        },
+        message: 'First Name must contain only letters',
       },
-      message: 'First Name must contain only letters',
     },
     LastName: {
       type: String,
@@ -41,44 +40,45 @@ const userSchema = new schema(
         validator: function (value) {
           return validator.isAlpha(value)
         },
-        Email: {
-          type: String,
-          required: [true, 'Email is required'],
-          unique: true,
-          lowercase: true,
-          validate: {
-            validator: function (value) {
-              return validator.isEmail(value)
-            },
-            message: 'Invalid Email',
-          },
+        message: 'Last Name must contain only letters',
+      },
+    },
+    Email: {
+      type: String,
+      required: [true, 'Email is required'],
+      unique: true,
+      lowercase: true,
+      validate: {
+        validator: function (value) {
+          return validator.isEmail(value)
         },
-        NationalId: {
-          type: String,
-          required: [true, 'National ID is required'],
-          unique: true,
-          maxlength: [14, 'National ID must be 14 characters'],
-          minlength: [14, 'National ID must be 14 characters'],
-          trim: true,
-          lowercase: true,
-          select: false,
-          validate: {
-            validator: function (value) {
-              return validator.isNumeric(value)
-            },
-            message: 'Invalid National ID',
-          },
+        message: 'Invalid Email',
+      },
+    },
+    NationalId: {
+      type: String,
+      required: [true, 'National ID is required'],
+      unique: true,
+      maxlength: [14, 'National ID must be 14 characters'],
+      minlength: [14, 'National ID must be 14 characters'],
+      trim: true,
+      lowercase: true,
+      select: false,
+      validate: {
+        validator: function (value) {
+          return validator.isNumeric(value)
         },
-        Password: {
-          type: String,
-          required: [true, 'Password is required'],
-          minlength: [8, 'Password must be at least 8 characters'],
-          select: false,
-          validate: {
-            validator: function (value) {
-              return validator.isStrongPassword(value)
-            },
-          },
+        message: 'Invalid National ID',
+      },
+    },
+    Password: {
+      type: String,
+      required: [true, 'Password is required'],
+      minlength: [8, 'Password must be at least 8 characters'],
+      select: false,
+      validate: {
+        validator: function (value) {
+          return validator.isStrongPassword(value)
         },
         message:
           'Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, one number and one special character',
@@ -99,8 +99,7 @@ const userSchema = new schema(
     PhoneNumber: {
       type: String,
       required: [true, 'Phone Number is required'],
-      regex: /^01[0125][0-9]{8}$/,
-      message: 'Invalid Phone Number',
+      match: [/^01[0125][0-9]{8}$/, 'Invalid phone number'],
       validate: {
         validator: function (value) {
           return validator.isMobilePhone(value)
@@ -112,22 +111,15 @@ const userSchema = new schema(
       type: String,
       default: 'default.png',
     },
-
     Gender: {
       type: String,
       required: [true, 'Gender is required'],
       enum: ['Male', 'Female', 'Other'],
     },
-
     DateOfBirth: {
       type: Date,
       required: [true, 'Date of Birth is required'],
-      validate: {
-        validator: function (value) {
-          return moment(value).isBefore(moment().subtract(18, 'years'))
-        },
-        message: 'Invalid Date of Birth',
-      },
+      
     },
     Address: {
       type: String,
@@ -167,9 +159,13 @@ const userSchema = new schema(
       type: schema.Types.ObjectId,
       required: true,
     },
+    emailVerificationToken: String,
+    emailVerificationExpire: Date,
     passwordChangeAt: Date,
     passwordResetToken: String,
     passwordResetExpire: Date,
+    refreshToken: String,
+    refreshTokenExpire: Date,
   },
   { timestamps: true }
 )
@@ -183,6 +179,7 @@ userSchema.virtual('Age').get(function () {
   let Age = new Date().getFullYear() - this.DateOfBirth.getFullYear()
   return Age
 })
+
 userSchema.pre(/^find/, function () {
   this.find({ IsActive: { $ne: false } })
 })
@@ -191,7 +188,10 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('Password')) {
     return next()
   }
-  this.Password = await bcrypt.hash(this.Password, parseInt(process.env.SALT_ROUNDS, 10))
+  this.Password = await bcrypt.hash(
+    this.Password,
+    parseInt(process.env.SALT_ROUNDS, 10)
+  )
   next()
 })
 
@@ -217,13 +217,43 @@ userSchema.methods.checkAuthAfterPasswordChange = async function (JwtIatTime) {
 
 userSchema.methods.sendPasswordResetToken = function () {
   let resetToken = crypto.randomBytes(32).toString('hex')
-  this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex')
   this.passwordResetExpire = new Date(Date.now() + 10 * 60 * 1000)
   return resetToken
 }
 
+userSchema.methods.sendEmailAuthToken = async function () {
+  let VerificationToken = crypto.randomBytes(32).toString('hex')
+  this.emailVerificationToken = crypto
+    .createHash('sha256')
+    .update(VerificationToken)
+    .digest('hex')
+  this.emailVerificationExpire = new Date(Date.now() + 10 * 60 * 1000)
+  return VerificationToken
+}
+
+userSchema.methods.createRefreshToken = function () {
+  const refreshToken = crypto.randomBytes(40).toString('hex')
+  this.refreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex')
+  this.refreshTokenExpire = Date.now() + 7 * 24 * 60 * 60 * 1000
+  return refreshToken
+}
+userSchema.methods.verifyRefreshToken = (token)=>{
+
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
+  return this.refreshToken === hashedToken && this.refreshTokenExpire > Date.now()
+}
+userSchema.clearRefreshToken = () =>{
+  this.refreshTokenExpire=undefined;
+  this.refreshToken=undefined;
+    return this.save({ validateBeforeSave: false });
+}
+
+
 userSchema.index({ Email: 1 })
-userSchema.index({ 'addresses.city': 1 })
 userSchema.index({ LastName: 1, FirstName: 1 })
 
 const User = mongoose.model('User', userSchema)

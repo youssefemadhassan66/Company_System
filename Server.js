@@ -1,7 +1,7 @@
 import DbConfig from './Configs/DbConfig.js'
 import app from './App.js'
 import 'dotenv/config'
-const Port = process.env.PORT || 300
+const Port = process.env.PORT || 3000
 
 async function StartServer() {
   try {

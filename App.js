@@ -13,21 +13,13 @@ app.use(express.static(path.join(__dirname, 'Public')))
 
 
 
+// Routes
 
+// app.use('/api/v1/users')
+// app.use('/api/v1/tasks')
+// app.use('/api/v1/attendance')
+// app.use('/api/v1/role')
 
-app.get('/', async function (req, res) {
-  res.status(200).json('Hello world from server ! ')
-})
-
-app.get('/test', async function (req, res, next) {
-  const err = new Error('Something Broken')
-  next(err)
-})
-
-app.get('/test2', async function (req, res, next) {
-  const err = new Error('Something else Broken')
-  next(err)
-})
 
 app.use( (req, res, next) => {
   next(new ErrorHandler(`Can't find ${req.originalUrl} this route on the server`, 404));
