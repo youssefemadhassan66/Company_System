@@ -1,0 +1,15 @@
+{
+  "testEnvironment": "node",
+  "testMatch": ["**/*.test.js"],
+  "collectCoverageFrom": [
+    "**/*.js",
+    "!node_modules/**",
+    "!coverage/**",
+    "!Tests/**"
+  ],
+  "testTimeout": 30000,
+  "verbose": true,
+  "bail": false,
+  "detectOpenHandles": true,
+  "forceExit": true
+}

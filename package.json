@@ -4,11 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit",
     "start": "nodemon server.js",
     "start:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed:roles": "node seed/seedRoles.js"
   },
   "keywords": [],
   "author": "",
@@ -29,7 +30,7 @@
     "moment": "^2.30.1",
     "mongoose": "^9.0.2",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.11",
+    "nodemailer": "^7.0.12",
     "pdfkit": "^0.17.2",
     "socket.io": "^4.8.1",
     "validator": "^13.15.26"

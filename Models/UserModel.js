@@ -4,7 +4,7 @@ import validator from 'validator'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import crypto from 'crypto'
-import { date } from 'joi'
+
 
 const schema = mongoose.Schema
 const userSchema = new schema(
@@ -54,6 +54,9 @@ const userSchema = new schema(
         },
         message: 'Invalid Email',
       },
+    },
+    IsEmailVerified:{
+      type:Boolean,
     },
     NationalId: {
       type: String,
@@ -164,8 +167,15 @@ const userSchema = new schema(
     passwordChangeAt: Date,
     passwordResetToken: String,
     passwordResetExpire: Date,
-    refreshToken: String,
-    refreshTokenExpire: Date,
+    refreshToken: 
+    {
+      type:String,
+      select:false
+    },
+    refreshTokenExpire:{
+       type:Date,
+      select:false
+    },
   },
   { timestamps: true }
 )
@@ -184,23 +194,21 @@ userSchema.pre(/^find/, function () {
   this.find({ IsActive: { $ne: false } })
 })
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   if (!this.isModified('Password')) {
-    return next()
+    return
   }
   this.Password = await bcrypt.hash(
     this.Password,
     parseInt(process.env.SALT_ROUNDS, 10)
   )
-  next()
 })
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   if (!this.isModified('Password') || this.isNew) {
-    return next()
+    return
   }
   this.passwordChangeAt = Date.now() - 1000
-  next()
 })
 
 userSchema.methods.matchUserPassword = async function (CandidatePassword) {
@@ -231,29 +239,34 @@ userSchema.methods.sendEmailAuthToken = async function () {
     .createHash('sha256')
     .update(VerificationToken)
     .digest('hex')
-  this.emailVerificationExpire = new Date(Date.now() + 10 * 60 * 1000)
+  this.emailVerificationExpire = new Date(Date.now() + 20 * 60 * 1000)
   return VerificationToken
 }
 
-userSchema.methods.createRefreshToken = function () {
-  const refreshToken = crypto.randomBytes(40).toString('hex')
-  this.refreshToken = crypto.createHash('sha256').update(refreshToken).digest('hex')
-  this.refreshTokenExpire = Date.now() + 7 * 24 * 60 * 60 * 1000
-  return refreshToken
+userSchema.methods.StoreRefreshToken = function (JwtRefreshToken) {
+  this.refreshToken = crypto.createHash('sha256').update(JwtRefreshToken).digest('hex')
+   this.refreshTokenExpire = new Date(Date.now() + 9 * 24 * 60 * 60 * 1000)
+  return this.save({ validateBeforeSave: false })
 }
-userSchema.methods.verifyRefreshToken = (token)=>{
 
-  const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
-  return this.refreshToken === hashedToken && this.refreshTokenExpire > Date.now()
+userSchema.methods.VerifyRefreshToken = function(JwtRefreshToken){
+  if(!this.refreshToken || !this.refreshTokenExpire){
+    return false;
+  }
+
+  const hashedRefreshToken = crypto.createHash('sha256').update(JwtRefreshToken).digest('hex')
+
+  return this.refreshToken === hashedRefreshToken && this.refreshTokenExpire > Date.now() ;
+
 }
-userSchema.clearRefreshToken = () =>{
+
+userSchema.methods.clearRefreshToken = function(){
   this.refreshTokenExpire=undefined;
   this.refreshToken=undefined;
     return this.save({ validateBeforeSave: false });
 }
 
 
-userSchema.index({ Email: 1 })
 userSchema.index({ LastName: 1, FirstName: 1 })
 
 const User = mongoose.model('User', userSchema)

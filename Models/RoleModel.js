@@ -1,4 +1,5 @@
 import mongoose from 'mongoose'
+import validator from 'validator'
 const schema = mongoose.Schema
 
 const roleSchema = new schema(
@@ -28,7 +29,7 @@ const roleSchema = new schema(
         message: 'Role name must contain only letters',
       },
       enum: {
-        Values: ['owner', 'admin', 'manager', 'team lead', 'moderator', 'employee'],
+        values: ['owner', 'admin', 'manager', 'team lead', 'moderator', 'employee'],
         message: '{VALUE} Invalid role name',
       },
       default: 'employee',
@@ -59,7 +60,7 @@ const roleSchema = new schema(
   { timestamps: true }
 )
 
-roleSchema.pre('save', function (next) {
+roleSchema.pre('save', function () {
   if (this.isModified('Name') || this.isNew) {
     const levelOfPower = {
       owner: 1,
@@ -72,37 +73,34 @@ roleSchema.pre('save', function (next) {
     let assign_level = levelOfPower[this.Name]
 
     if (this.Name === undefined) {
-      return next(new Error('In valid role name'))
+      throw new Error('Invalid role name')
     }
 
     this.Level = assign_level
-
-    next()
   }
 })
 
-roleSchema.pre('remove', async function (next) {
+roleSchema.pre('remove', function (next) {
   let role = this
-  let defaultRole = ['admin', 'moderator', 'team lead']
+  let defaultRole = ['admin', 'moderator', 'team lead','owner']
   if (defaultRole.includes(role.Name)) {
     return next(new Error('Cannot delete default system role'))
   }
   next()
 })
 
-roleSchema.pre('remove', async function (next) {
+roleSchema.pre('remove', async function () {
   let User = mongoose.model('User')
   let userCount = await User.countDocuments({
     Role: this._id,
   })
 
   if (userCount > 0) {
-    return next(new Error(`Can't delete role , there are ${userCount} users  assigned to that role . please Reassign users first `))
+    throw new Error(`Can't delete role, there are ${userCount} users assigned to that role. Please reassign users first.`)
   }
-  next()
 })
 
-roleSchema.pre(/^find/, function (next) {
+roleSchema.pre(/^find/, function () {
   this.find({ IsActive: { $ne: false } })
 })
 

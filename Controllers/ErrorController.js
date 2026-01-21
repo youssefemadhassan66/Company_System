@@ -1,5 +1,5 @@
-import { object } from 'joi'
-import ErrorHandler from '../Utilities/ErrorHandler'
+
+import ErrorHandler from '../Utilities/ErrorHandler.js'
 
 const HandleCastDBError = (err) => {
   const message = `Invalid ${err.path}:${err.value}`
@@ -77,8 +77,6 @@ const GlobalErrorHandler = (err,req,res,next)=>{
     ErrorProduction(res,error)
     
   }
-
-  
 }
 
 export default GlobalErrorHandler
