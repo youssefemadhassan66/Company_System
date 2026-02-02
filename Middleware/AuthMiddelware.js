@@ -115,7 +115,7 @@ const Login = wrapAsync(async (req, res, next) => {
     if (!user) {
         return next(new ErrorHandler('This email is not found', 401))
     }
-    if(user.IsEmailVerified !=true){
+    if(!user.IsEmailVerified ){
         return next(new ErrorHandler('This email is not verified', 401))
     }
 

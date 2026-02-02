@@ -162,8 +162,15 @@ const userSchema = new schema(
       type: schema.Types.ObjectId,
       required: true,
     },
-    emailVerificationToken: String,
-    emailVerificationExpire: Date,
+    emailVerificationToken: {
+      type:String,
+      select:false,
+    },
+    emailVerificationExpire:
+    {
+      type:Date,
+      select:false,
+    },
     passwordChangeAt: Date,
     passwordResetToken: String,
     passwordResetExpire: Date,

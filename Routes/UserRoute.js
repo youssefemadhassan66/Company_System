@@ -1,15 +1,26 @@
 import express from "express";
-const router = express.router();
-import {   signup,
-    Login,
-    logout,
-    refreshToken,      
+const router = express.Router();
+import {   
     restrictedTo,
     protection,
-    resetPassword,
-    updatePassword,
-    forgetPassword,
-    SendEmailVerification
- } from "../Middleware/AuthMiddelware";
- 
+ } from "../Middleware/AuthMiddelware.js";
+
+import {getMe,getUSerById,getAllUsers, deleteUserByID,ToggleActivateUSer} from "../Controllers/UserController.js";
+
+// router.use(protection)
+
+router.get("/getMe/", getMe,getUSerById);
+
+// router.use(restrictedTo(["admin , owner"]))
+
+router.route("/")
+.get(getAllUsers)
+
+router.route("/:id")
+.get(getUSerById)
+.delete(deleteUserByID)
+
+router.route("/:id/active").get(ToggleActivateUSer)
+
+export default router;
 
