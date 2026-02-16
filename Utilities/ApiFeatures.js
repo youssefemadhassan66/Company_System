@@ -68,7 +68,7 @@ class ApiFeatures {
             })
         })
         
-        console.log(`Filtered ${docs.length} docs down to ${filteredDocs.length} docs`)
+       
         return filteredDocs
     }
 

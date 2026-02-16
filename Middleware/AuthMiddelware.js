@@ -93,7 +93,7 @@ const signup = wrapAsync(async (req, res, next) => {
             }
         })
     } catch (err) {
-        // Delete user if email fails
+        
         await User.findByIdAndDelete(newUser._id)
         return next(new ErrorHandler('Failed to send verification email. Please try again later!', 500))
     }

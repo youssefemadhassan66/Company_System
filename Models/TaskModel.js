@@ -1,7 +1,6 @@
 import mongoose from 'mongoose'
-import { useId } from 'react'
-const { schema } = mongoose
-const tasksSchema = new schema(
+const { Schema } = mongoose
+const tasksSchema = new Schema(
   {
     title: {
       type: String,
@@ -35,12 +34,12 @@ const tasksSchema = new schema(
       default: 'pending',
     },
     assignedTo: {
-      type: schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
     assignedBy: {
-      type: schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
@@ -55,7 +54,7 @@ const tasksSchema = new schema(
       },
     },
     review: {
-      type: string,
+      type: String,
       maxlength: [1000, 'Review must be less than 1000 characters'],
     },
     progress: {
@@ -64,7 +63,7 @@ const tasksSchema = new schema(
       max: 100,
       default: 0,
     },
-    ComlpletedAt: {
+    CompletedAt: {
       type: Date,
     },
     isCompleted: {
@@ -90,18 +89,18 @@ tasksSchema.index({ isDeleted: 1 })
 tasksSchema.index({ dueDate: 1 })
 
 tasksSchema.pre(/^find/, function (next) {
-  this.find({ isDeleted: { $ne: false } })
+  this.find({ isDeleted: { $ne: true } })
 })
 
 tasksSchema.pre('save', function (next) {
   if (this.isModified('status')) {
-    if (this.status === 'complete') {
+    if (this.status === 'completed') {
       this.isCompleted = true
-      this.ComlpletedAt = new Date()
+      this.CompletedAt = new Date()
       this.progress = 100
-    } else if (this.status === 'Pending' || this.status === 'in progress') {
+    } else if (this.status === 'pending' || this.status === 'in progress') {
       this.isCompleted = false
-      this.ComlpletedAt = undefined
+      this.CompletedAt = undefined
     }
   }
 
@@ -112,7 +111,7 @@ tasksSchema.pre('save', function (next) {
     if (this.status == 'in progress') {
       this.progress = Math.max(this.progress || 0, 50)
     }
-    if (this.status == 'complete') {
+    if (this.status == 'completed') {
       this.progress = 100
     }
   }
@@ -123,10 +122,10 @@ tasksSchema.pre('save', function (next) {
 // Methods
 
 tasksSchema.methods.markComplete = async function () {
-  this.status = 'complete'
+  this.status = 'completed'
   this.isCompleted = true
   this.progress = 100
-  this.ComlpletedAt = new Date()
+  this.CompletedAt = new Date()
   return this.save()
 }
 
@@ -217,9 +216,9 @@ tasksSchema.statics.getDueDate = async function (userId, EndDate) {
   }).sort({ dueDate: -1 })
 }
 
-tasksSchema.getOverDueTasks = async function (userId = null) {
-  today = new Date()
-  MatchedUser = userId ? { assignedTo: userId } : {}
+tasksSchema.statics.getOverDueTasks = async function (userId = null) {
+  const today = new Date()
+  const MatchedUser = userId ? { assignedTo: userId } : {}
   return this.find({
     status: { $nin: ['completed', 'archived'] },
     dueDate: { $lte: today },

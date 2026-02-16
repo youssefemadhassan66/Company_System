@@ -6,6 +6,9 @@ import AuthRouter from './Routes/AuthRoute.js'
 import UserRouter from './Routes/UserRoute.js'
 import RoleRouter from './Routes/RoleRoute.js'
 import ErrorHandler from './Utilities/ErrorHandler.js';
+import TaskRouter from './Routes/TasksRouter.js'
+
+
 import qs from 'qs'
 const app = express()
 
@@ -20,8 +23,7 @@ app.set('query parser', (str) => qs.parse(str))
 app.use('/api/v1/auth/',AuthRouter)
 app.use('/api/v1/user/',UserRouter)
 app.use('/api/v1/role/',RoleRouter)
-// app.use('/api/v1/users')
-// app.use('/api/v1/tasks')
+app.use('/api/v1/tasks/',TaskRouter)
 // app.use('/api/v1/attendance')
 
 

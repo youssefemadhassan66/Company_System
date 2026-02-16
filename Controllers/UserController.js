@@ -69,7 +69,7 @@ const updateUserById = wrapAsync(async(req,res,next)=>{
       res.status(200).json({
       status: 'success',
       data: {
-        data: document
+        document: document
       }
     });
 })
