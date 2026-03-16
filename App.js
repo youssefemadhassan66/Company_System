@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 app.use(express.json())
 app.use(express.static(path.join(__dirname, 'Public')))
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.urlencoded({ extended: true }));
 app.set('query parser', (str) => qs.parse(str))
 // Routes
 

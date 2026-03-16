@@ -207,7 +207,7 @@ userSchema.pre('save', async function () {
   }
   this.Password = await bcrypt.hash(
     this.Password,
-    parseInt(process.env.SALT_ROUNDS, 10)
+    parseInt(process.env.SALT_ROUNDS, 10) 
   )
 })
 
@@ -260,7 +260,6 @@ userSchema.methods.VerifyRefreshToken = function(JwtRefreshToken){
   if(!this.refreshToken || !this.refreshTokenExpire){
     return false;
   }
-
   const hashedRefreshToken = crypto.createHash('sha256').update(JwtRefreshToken).digest('hex')
 
   return this.refreshToken === hashedRefreshToken && this.refreshTokenExpire > Date.now() ;
